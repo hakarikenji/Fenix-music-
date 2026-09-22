@@ -176,8 +176,10 @@
       language: $("f-lang").value,
       topic: $("f-topic").value.trim()
     }).then(function (r) {
+      var lyrics = (r && r.lyrics) ? r.lyrics : "";
+      if (!lyrics) { F.toast((r && r.error) || F.t("brainsBusy"), true); return; }
       var out = $("lyrics-out");
-      out.textContent = r.lyrics;
+      out.textContent = lyrics;
       out.classList.remove("hidden");
       $("btn-copy-lyrics").classList.remove("hidden");
       F.toast(F.t("lyricsReady") + r.brain + ")");
@@ -214,9 +216,11 @@
     }
     F.api("/api/chat", { message: msg, history: state.history })
       .then(function (r) {
-        addMsg(r.reply, "bot");
+        var reply = (r && r.reply) ? r.reply : "";
+        if (!reply) { F.toast((r && r.error) || F.t("chatNoReply"), true); return; }
+        addMsg(reply, "bot");
         state.history.push({ role: "user", content: text });
-        state.history.push({ role: "assistant", content: r.reply });
+        state.history.push({ role: "assistant", content: reply });
       })
       .catch(function (e) { F.toast(e.message, true); })
       .finally(function () { setBusy(false); });

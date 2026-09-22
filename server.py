@@ -33,12 +33,15 @@ def _brain(url_env: str, default: str) -> str:
 MUSIC_BRAIN_URL = _brain("MUSIC_BRAIN_URL", FENIX_MUSIC_BRAIN_URL)      # عقل الموسيقى المدرّب
 CORE_BRAIN_URL = _brain("CORE_BRAIN_URL", FENIX_CORE_BRAIN_URL)          # عقل الكور
 MUSIC_BRAIN_MODEL = os.environ.get("MUSIC_BRAIN_MODEL", "fenix-music")
-MUSIC_BRAIN_TIMEOUT = float(os.environ.get("MUSIC_BRAIN_TIMEOUT", "300"))
+MUSIC_BRAIN_TIMEOUT = float(os.environ.get("MUSIC_BRAIN_TIMEOUT", "150"))
 MUSIC_BRAIN_API_KEY = os.environ.get("MUSIC_BRAIN_API_KEY", "")
+
+_brain_errors: list = []
 
 
 def music_brain_reply(system: str, user: str, temperature: float) -> str | None:
-    """جرّب سلسلة العقول المدرّبة بالترتيب؛ None = فشل الكل (النادِ يرجع لـ Gemini)."""
+    """جرّب سلسلة العقول بالترتيب؛ None = فشل الكل (يرجع النادِ لـ Gemini).
+    كشف فوري لرفض Modal (workspace disabled / spend limit) بدون انتظار المهلة."""
     body = json.dumps({
         "model": MUSIC_BRAIN_MODEL,
         "messages": [{"role": "system", "content": system},
@@ -48,6 +51,7 @@ def music_brain_reply(system: str, user: str, temperature: float) -> str | None:
     headers = {"Content-Type": "application/json"}
     if MUSIC_BRAIN_API_KEY:
         headers["Authorization"] = "Bearer " + MUSIC_BRAIN_API_KEY
+    errors = []
     for base_url in (MUSIC_BRAIN_URL, CORE_BRAIN_URL):
         if not base_url:
             continue
@@ -55,12 +59,20 @@ def music_brain_reply(system: str, user: str, temperature: float) -> str | None:
             req = urllib.request.Request(base_url + "/chat/completions",
                                          data=body, headers=headers)
             with urllib.request.urlopen(req, timeout=MUSIC_BRAIN_TIMEOUT) as r:
-                out = json.load(r)
+                raw = r.read().decode("utf-8", "ignore")
+            if raw.lstrip().lower().startswith("modal-http:"):
+                errors.append(f"{base_url}: modal workspace disabled/limit")
+                continue  # فشل فوري — لا انتظار المهلة
+            out = json.loads(raw)
             text = ((out.get("choices") or [{}])[0].get("message") or {}).get("content", "").strip()
             if text:
                 return text
-        except Exception:
+            errors.append(f"{base_url}: empty reply")
+        except Exception as e:
+            errors.append(f"{base_url}: {e}")
             continue
+    _brain_errors.clear()
+    _brain_errors.extend(errors)
     return None
 
 
@@ -101,7 +113,8 @@ def api_lyrics():
     text = music_brain_reply(system, user, 0.95)  # private brain first
     if not text:
         if not KEY:
-            return jsonify({"error": "No music brain configured"}), 502
+            return jsonify({"error": "كل العقول غير متاحة الآن — فعّل Modal أو أضف GEMINI_API_KEY",
+                            "detail": _brain_errors}), 503
         try:
             from brain import _gen
             text = _gen(system, user, 0.95)
@@ -131,7 +144,8 @@ def api_audio_prompt():
     text = music_brain_reply(system, user, 0.9)
     if not text:
         if not KEY:
-            return jsonify({"error": "No music brain configured"}), 502
+            return jsonify({"error": "كل العقول غير متاحة الآن — فعّل Modal أو أضف GEMINI_API_KEY",
+                            "detail": _brain_errors}), 503
         try:
             from brain import _gen
             text = _gen(system, user, 0.9)
@@ -155,11 +169,13 @@ def api_chat():
     reply = music_brain_reply(system, message, 0.8)
     if not reply:
         if not KEY:
-            return jsonify({"error": "No music brain configured"}), 502
+            return jsonify({"error": "كل العقول غير متاحة الآن — فعّل Modal أو أضف GEMINI_API_KEY",
+                            "detail": _brain_errors}), 503
         try:
             reply = chat_reply(history[-20:], message)
         except Exception as e:
-            return jsonify({"error": f"Brain connection failed: {e}"}), 502
+            return jsonify({"error": "كل العقول غير متاحة الآن (Modal معطّل أو حصة Gemini انتهت) — جرّب لاحقاً",
+                            "detail": _brain_errors + [f"gemini: {e}"]}), 503
     return jsonify({"reply": reply, "brain": _brain_tag()})
 
 
@@ -247,8 +263,15 @@ def api_config():
     return jsonify({
         "brain": _brain_tag(),
         "custom_brain": bool(MUSIC_BRAIN_URL),
-        "generator": bool(os.environ.get("MUSIC_GEN_URL")),
+        "generator": bool(os.environ.get("MUSIC_GEN_URL")) or bool(os.environ.get("HF_TOKEN")),
         "gemini": bool(KEY),
+        "brains": {
+            "music_brain": bool(MUSIC_BRAIN_URL),
+            "core_brain": bool(CORE_BRAIN_URL),
+            "gemini": bool(KEY),
+            "generator_modal": bool(os.environ.get("MUSIC_GEN_URL")),
+            "generator_free": bool(os.environ.get("HF_TOKEN")),
+        },
     })
 
 

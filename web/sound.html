@@ -136,9 +136,11 @@
       bpm: bpmEl.value,
       duration: durEl.value
     }).then(function (r) {
-      $("s-prompt").value = r.prompt;
-      F.toast("⚡ " + r.brain);
-    }).catch(function (e) { F.toast(e.message, true); })
+      var promptText = (r && r.prompt) ? r.prompt : "";
+        if (!promptText) { F.toast((r && r.error) || F.t("brainsBusy"), true); return; }
+        $("s-prompt").value = promptText;
+        F.toast("⚡ " + r.brain);
+      }).catch(function (e) { F.toast(e.message, true); })
       .finally(function () { setBusy(false); });
   });
 
@@ -153,9 +155,11 @@
     $("gen-status-text").textContent = F.t("generating");
     F.api("/api/generate", { prompt: prompt, duration: durEl.value, seed: $("s-seed").value || undefined })
       .then(function (r) {
-        state.audioUrl = F.API + r.url;
-        $("audio").src = F.API + r.url;
-        $("track-time").textContent = F.t("genIn", { n: r.seconds });
+        var url = (r && r.url) ? r.url : "";
+        if (!url) { throw new Error((r && r.error) || "no audio"); }
+        state.audioUrl = F.API + url;
+        $("audio").src = F.API + url;
+        $("track-time").textContent = r.seconds ? F.t("genIn", { n: r.seconds }) : "";
         $("player").classList.remove("hidden");
         $("gen-status").classList.add("hidden");
         $("audio").play().catch(function () {});

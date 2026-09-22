@@ -58,7 +58,9 @@
       sTranslate: "DJ replies in app language", sTranslateD: "Radio DJ always answers in the UI language",
       sMotion: "Reduce motion", sMotionD: "Disable spinner and UI animations",
       reset: "Reset to defaults", resetDone: "Settings reset ✓", saved: "Saved ✓",
-      multi: "multilingual"
+      multi: "multilingual",
+      brainsBusy: "All brains are busy right now — try again in a few minutes",
+      chatNoReply: "The brain didn't reply — try again"
     },
     ar: {
       tagline: "استوديو الفونك والأغاني — من عائلة Fenix · by Hakari",
@@ -97,7 +99,9 @@
       sTranslate: "ردود المذيع بلغة التطبيق", sTranslateD: "مذيع الراديو يجاوب دائماً بلغة الواجهة",
       sMotion: "تقليل الحركة", sMotionD: "تعطيل الأنيميشن والمؤشر الدوار",
       reset: "إرجاع الإعدادات الافتراضية", resetDone: "تم الإرجاع ✓", saved: "تم الحفظ ✓",
-      multi: "متعدد اللغات"
+      multi: "متعدد اللغات",
+      brainsBusy: "كل العقول مشغولة الآن — جرّب بعد دقائق",
+      chatNoReply: "العقل ما رد — جرّب مرة ثانية"
     },
     fr: {
       tagline: "Studio phonk & chansons — famille Fenix · par Hakari",
@@ -136,7 +140,9 @@
       sTranslate: "DJ répond dans la langue de l'app", sTranslateD: "Le DJ radio répond toujours dans la langue de l'UI",
       sMotion: "Réduire les animations", sMotionD: "Désactiver spinner et animations",
       reset: "Réinitialiser", resetDone: "Réinitialisé ✓", saved: "Enregistré ✓",
-      multi: "multilingue"
+      multi: "multilingue",
+      brainsBusy: "Tous les cerveaux sont occupés — réessaie dans quelques minutes",
+      chatNoReply: "Le cerveau n'a pas répondu — réessaie"
     },
     es: {
       tagline: "Estudio de phonk y canciones — familia Fenix · por Hakari",
@@ -175,7 +181,9 @@
       sTranslate: "DJ responde en el idioma de la app", sTranslateD: "El DJ radio siempre responde en el idioma de la UI",
       sMotion: "Reducir animaciones", sMotionD: "Desactivar spinner y animaciones",
       reset: "Restablecer valores", resetDone: "Restablecido ✓", saved: "Guardado ✓",
-      multi: "multilingüe"
+      multi: "multilingüe",
+      brainsBusy: "Todos los cerebros están ocupados — inténtalo en unos minutos",
+      chatNoReply: "El cerebro no respondió — inténtalo de nuevo"
     },
     ja: {
       tagline: "フォンク&ソング・スタジオ — Fenix ファミリー · by Hakari",
@@ -214,7 +222,9 @@
       sTranslate: "DJはアプリの言語で返信", sTranslateD: "ラジオDJは常にUI言語で答えます",
       sMotion: "アニメーションを減らす", sMotionD: "スピナーとアニメーションを無効化",
       reset: "デフォルトに戻す", resetDone: "リセットしました ✓", saved: "保存しました ✓",
-      multi: "多言語"
+      multi: "多言語",
+      brainsBusy: "すべてのブレインが混み合っています — 数分後に再試行してください",
+      chatNoReply: "ブレインから応答がありません — もう一度お試しください"
     },
     ru: {
       tagline: "Студия фонка и песен — семья Fenix · от Hakari",
@@ -253,7 +263,9 @@
       sTranslate: "DJ отвечает на языке приложения", sTranslateD: "Радио-диджей всегда отвечает на языке интерфейса",
       sMotion: "Уменьшить анимацию", sMotionD: "Отключить спиннер и анимации",
       reset: "Сбросить настройки", resetDone: "Сброшено ✓", saved: "Сохранено ✓",
-      multi: "многоязычный"
+      multi: "многоязычный",
+      brainsBusy: "Все мозги сейчас заняты — попробуйте через пару минут",
+      chatNoReply: "Мозг не ответил — попробуйте ещё раз"
     }
   };
 

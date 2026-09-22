@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Fenix Music — استوديو الأغاني بالذكاء الاصطناعي</title>
 <link rel="manifest" href="manifest.json">
+<script src="config.js"></script>
 <meta name="theme-color" content="#0a0710">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -262,6 +263,7 @@
   }
   var $ = function (id) { return document.getElementById(id); };
   var state = { audioUrl: null, chatHistory: [], config: null, busy: false };
+  var API = (window.FENIX_SERVER || "");  // APK: عنوان السيرفر في config.js — الويب: نفس الأصل
 
   // ---------- helpers ----------
   function toast(text, isErr) {
@@ -276,7 +278,7 @@
     ["btn-lyrics", "btn-auto-prompt", "btn-generate", "btn-chat-send"].forEach(function (id) { $(id).disabled = b; });
   }
   function api(path, body) {
-    return fetch(path, {
+    return fetch(API + path, {
       method: body ? "POST" : "GET",
       headers: body ? { "Content-Type": "application/json" } : undefined,
       body: body ? JSON.stringify(body) : undefined
@@ -368,8 +370,8 @@
     $("gen-status-text").textContent = "جاري التوليد… أول مرة ممكن تاخذ دقايق (تحميل النموذج على GPU)";
     api("/api/generate", { prompt: prompt, duration: durEl.value, seed: $("s-seed").value || undefined })
       .then(function (r) {
-        state.audioUrl = r.url;
-        $("audio").src = r.url;
+        state.audioUrl = API + r.url;
+        $("audio").src = API + r.url;
         $("track-time").textContent = "توليد في " + r.seconds + " ثانية";
         show($("player"), true);
         show($("gen-status"), false);

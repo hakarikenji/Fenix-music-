@@ -94,7 +94,7 @@ def api_lyrics():
     data = request.get_json(silent=True) or {}
     genre = (data.get("genre") or "phonk").strip()[:40]
     mood = (data.get("mood") or "dark aggressive").strip()[:60]
-    language = (data.get("language") or "Arabic").strip()[:20]
+    language = (data.get("language") or "English").strip()[:40]
     topic = (data.get("topic") or "").strip()[:300]
     system = lyric_system(genre, mood, language, topic)
     user = f"Write {genre} lyrics about: {topic or 'your best idea'}."

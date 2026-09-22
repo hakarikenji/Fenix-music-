@@ -1,9 +1,9 @@
 {
-  "name": "Fenix Music — استوديو الأغاني بالذكاء الاصطناعي",
+  "name": "Fenix Music — AI Song Studio",
   "short_name": "Fenix Music",
-  "description": "توليد فونك وأغانٍ كاملة بالكلمات — من عائلة Fenix، بعقل موسيقى خاص",
-  "lang": "ar",
-  "dir": "rtl",
+  "description": "Phonk & full song generation with lyrics — Fenix family, with its own music brain",
+  "lang": "en",
+  "dir": "ltr",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0710",

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fenix Music — Settings</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+<script src="app.js"></script>
+<meta name="theme-color" content="#0a0710">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%A5%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">⚙️</div>
+    <div class="titles">
+      <h1>Fenix <em>Music</em></h1>
+      <p data-i18n="settingsSub">App preferences — saved on this device</p>
+    </div>
+  </header>
+
+  <!-- ==================== app language ==================== -->
+  <section class="card">
+    <h2>🌍 <span data-i18n="sUiLang">App language</span> <span class="badge" data-i18n="multi">multilingual</span></h2>
+    <p class="sub" data-i18n="sUiLangD">Interface language for the whole app</p>
+    <div class="lang-grid" id="lang-grid"></div>
+  </section>
+
+  <!-- ==================== lyrics defaults ==================== -->
+  <section class="card">
+    <h2>✍️ <span data-i18n="lyricsTitle">Lyrics</span></h2>
+    <p class="sub" data-i18n="sLyricsLangD">Defaults pre-selected in the studio</p>
+
+    <label for="set-lyrics-lang" data-i18n="sLyricsLang">Default lyrics language</label>
+    <select id="set-lyrics-lang">
+      <option value="English">English</option>
+      <option value="Arabic">العربية (Arabic)</option>
+      <option value="French">Français (French)</option>
+      <option value="Spanish">Español (Spanish)</option>
+      <option value="Japanese">日本語 (Japanese)</option>
+      <option value="Russian">Русский (Russian)</option>
+      <option value="Multilingual mix (EN base + hooks)">🌍 Multilingual mix (EN base + hooks)</option>
+    </select>
+
+    <div class="row" style="margin-top:12px">
+      <div>
+        <label for="set-genre" data-i18n="sGenre">Default genre</label>
+        <select id="set-genre">
+          <option value="phonk">Phonk</option>
+          <option value="drift phonk">Drift Phonk</option>
+          <option value="rap">Rap</option>
+          <option value="arabic rap">Arabic Rap</option>
+          <option value="trap">Trap</option>
+          <option value="pop">Pop</option>
+          <option value="lofi">Lo-fi</option>
+        </select>
+      </div>
+      <div>
+        <label for="set-mood" data-i18n="sMood">Default mood</label>
+        <select id="set-mood">
+          <option value="dark aggressive">Dark / Aggressive</option>
+          <option value="energetic">Energetic</option>
+          <option value="sad emotional">Sad / Emotional</option>
+          <option value="chill nostalgic">Chill / Nostalgic</option>
+          <option value="epic cinematic">Epic / Cinematic</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== sound defaults ==================== -->
+  <section class="card">
+    <h2>🎧 <span data-i18n="navSound">Sound</span></h2>
+    <div class="row">
+      <div>
+        <label for="set-bpm" data-i18n="sBpm">Default BPM</label>
+        <input type="number" id="set-bpm" min="60" max="200" value="140">
+      </div>
+      <div>
+        <label for="set-duration" data-i18n="sDuration">Default duration (seconds)</label>
+        <input type="number" id="set-duration" min="5" max="30" value="20">
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== behaviour ==================== -->
+  <section class="card">
+    <h2>💬 <span data-i18n="chatTitle">Radio DJ</span></h2>
+    <div class="set-row">
+      <div>
+        <div class="s-label" data-i18n="sTranslate">DJ replies in app language</div>
+        <div class="s-desc" data-i18n="sTranslateD">Radio DJ always answers in the UI language</div>
+      </div>
+      <button class="toggle" id="set-translate" type="button" aria-pressed="false"></button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>🎨 <span data-i18n="sMotion">Appearance</span></h2>
+    <div class="set-row">
+      <div>
+        <div class="s-label" data-i18n="sMotion">Reduce motion</div>
+        <div class="s-desc" data-i18n="sMotionD">Disable spinner and UI animations</div>
+      </div>
+      <button class="toggle" id="set-motion" type="button" aria-pressed="false"></button>
+    </div>
+  </section>
+
+  <section class="card">
+    <button class="btn-ghost" id="btn-reset" data-i18n="reset">Reset to defaults</button>
+  </section>
+
+  <footer>Fenix Music · Hakari Studio — <a href="https://github.com/hakarikenji">Fenix AI · Fenix Music</a></footer>
+</div>
+
+<!-- ==================== bottom nav ==================== -->
+<nav class="bottom-nav">
+  <a href="index.html" data-page="index"><span class="n-ico">🏠</span><span data-i18n="navStudio">Studio</span></a>
+  <a href="sound.html" data-page="sound"><span class="n-ico">🎧</span><span data-i18n="navSound">Sound</span></a>
+  <a href="settings.html" data-page="settings"><span class="n-ico">⚙️</span><span data-i18n="navSettings">Settings</span></a>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+  var F = window.FenixApp;
+  var $ = function (id) { return document.getElementById(id); };
+  var S = F.settings;
+
+  // ---------- app language grid ----------
+  var grid = $("lang-grid");
+  F.LANGS.forEach(function (l) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "lang-opt" + (S.uiLanguage === l.code ? " active" : "");
+    b.dataset.code = l.code;
+    b.innerHTML = '<span class="l-native">' + l.native + "</span>" + l.code.toUpperCase();
+    b.addEventListener("click", function () {
+      S.uiLanguage = l.code;
+      F.save();
+      grid.querySelectorAll(".lang-opt").forEach(function (x) { x.classList.remove("active"); });
+      b.classList.add("active");
+      applyAll();
+      F.toast(F.t("saved"));
+    });
+    grid.appendChild(b);
+  });
+
+  // ---------- selects + numbers ----------
+  $("set-lyrics-lang").value = S.lyricsLanguage;
+  $("set-genre").value = S.genre;
+  $("set-mood").value = S.mood;
+  $("set-bpm").value = S.bpm;
+  $("set-duration").value = S.duration;
+
+  $("set-lyrics-lang").addEventListener("change", function () { S.lyricsLanguage = this.value; F.save(); });
+  $("set-genre").addEventListener("change", function () { S.genre = this.value; F.save(); });
+  $("set-mood").addEventListener("change", function () { S.mood = this.value; F.save(); });
+  $("set-bpm").addEventListener("change", function () {
+    S.bpm = Math.max(60, Math.min(200, +this.value || 140));
+    this.value = S.bpm;
+    F.save();
+  });
+  $("set-duration").addEventListener("change", function () {
+    S.duration = Math.max(5, Math.min(30, +this.value || 20));
+    this.value = S.duration;
+    F.save();
+  });
+
+  // ---------- toggles ----------
+  function bindToggle(id, key) {
+    var btn = $(id);
+    btn.classList.toggle("on", !!S[key]);
+    btn.setAttribute("aria-pressed", String(!!S[key]));
+    btn.addEventListener("click", function () {
+      S[key] = !S[key];
+      F.save();
+      btn.classList.toggle("on", S[key]);
+      btn.setAttribute("aria-pressed", String(S[key]));
+      F.toast(F.t("saved"));
+    });
+  }
+  bindToggle("set-translate", "autoChatTranslate");
+  bindToggle("set-motion", "reduceMotion");
+
+  // ---------- reset ----------
+  $("btn-reset").addEventListener("click", function () {
+    for (var k in F.DEFAULTS) S[k] = F.DEFAULTS[k];
+    if (Array.isArray(S.history)) S.history.length = 0;
+    F.save();
+    location.reload();
+  });
+
+  // ---------- live re-translation ----------
+  function applyAll() {
+    F.applyTranslations();
+    document.title = "Fenix Music — " + F.t("navSettings");
+  }
+  applyAll();
+})();
+</script>
+</body>
+</html>

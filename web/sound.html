@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fenix Music — Sound Studio</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+<script src="app.js"></script>
+<meta name="theme-color" content="#0a0710">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%A5%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">🎧</div>
+    <div class="titles">
+      <h1>Fenix <em>Sound</em></h1>
+      <p data-i18n="soundSub">Real beat generation — MusicGen on GPU</p>
+    </div>
+    <div class="status-pill" id="status-pill"><span class="dot"></span><span id="status-text">…</span></div>
+    <button class="icon-btn" id="btn-settings" title="Settings" onclick="location.href='settings.html'">⚙️</button>
+  </header>
+
+  <!-- ==================== generator ==================== -->
+  <section class="card">
+    <h2 data-i18n="soundTitle">🎧 Real Sound Generation (MusicGen on GPU)</h2>
+    <p class="sub" data-i18n="soundSub">Write the beat description or auto-generate it, then hit generate — you get a ready WAV</p>
+
+    <div class="row">
+      <div>
+        <label for="s-bpm" data-i18n="bpm">BPM: <span id="s-bpm-val">140</span></label>
+        <input type="range" id="s-bpm" min="60" max="200" value="140" style="padding:0;accent-color:var(--fire1)">
+      </div>
+      <div>
+        <label for="s-duration" id="s-duration-label">Duration: <span id="s-duration-val">20</span> seconds</label>
+        <input type="range" id="s-duration" min="5" max="30" value="20" style="padding:0;accent-color:var(--fire1)">
+        <input type="hidden" id="s-seed">
+      </div>
+    </div>
+
+    <label for="s-prompt" data-i18n="beatPrompt">Beat description</label>
+    <textarea id="s-prompt" data-i18n-ph="beatPh" placeholder="e.g. dark aggressive drift phonk, heavy 808 bass…"></textarea>
+
+    <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap">
+      <button class="btn-ghost" id="btn-auto-prompt" data-i18n="autoPrompt">⚡ Auto prompt</button>
+      <button class="btn-fire" id="btn-generate" data-i18n="generate">🎵 Generate music</button>
+    </div>
+
+    <div class="gen-status hidden" id="gen-status"><div class="spinner"></div><span id="gen-status-text">…</span></div>
+
+    <div class="player hidden" id="player">
+      <div class="track-meta"><span id="track-name" data-i18n="yourTrack">🎶 Your new track</span><span id="track-time"></span></div>
+      <audio id="audio" controls preload="metadata"></audio>
+      <button class="btn-ghost" id="btn-download" style="align-self:flex-start" data-i18n="downloadWav">⬇️ Download WAV</button>
+    </div>
+  </section>
+
+  <!-- ==================== history ==================== -->
+  <section class="card">
+    <h2 data-i18n="historyTitle">🕘 Generated tracks</h2>
+    <p class="sub" data-i18n="historySub">Stored on this device</p>
+    <div id="history-list"></div>
+  </section>
+
+  <footer>Fenix Music · Hakari Studio — <a href="https://github.com/hakarikenji">Fenix AI · Fenix Music</a></footer>
+</div>
+
+<!-- ==================== bottom nav ==================== -->
+<nav class="bottom-nav">
+  <a href="index.html" data-page="index"><span class="n-ico">🏠</span><span data-i18n="navStudio">Studio</span></a>
+  <a href="sound.html" data-page="sound"><span class="n-ico">🎧</span><span data-i18n="navSound">Sound</span></a>
+  <a href="settings.html" data-page="settings"><span class="n-ico">⚙️</span><span data-i18n="navSettings">Settings</span></a>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+  var F = window.FenixApp;
+  var $ = function (id) { return document.getElementById(id); };
+  var S = F.settings;
+  var state = { audioUrl: null, busy: false };
+
+  function setBusy(b) {
+    state.busy = b;
+    ["btn-auto-prompt", "btn-generate"].forEach(function (id) { $(id).disabled = b; });
+  }
+
+  // ---------- init from saved settings ----------
+  $("s-bpm").value = S.bpm;
+  $("s-duration").value = S.duration;
+  $("s-bpm-val").textContent = S.bpm;
+  $("s-duration-val").textContent = S.duration;
+
+  F.applyTranslations();
+  updateDurationLabel();
+
+  var bpmEl = $("s-bpm"), durEl = $("s-duration");
+  bpmEl.addEventListener("input", function () { $("s-bpm-val").textContent = bpmEl.value; });
+  durEl.addEventListener("input", function () {
+    $("s-duration-val").textContent = durEl.value;
+    updateDurationLabel();
+  });
+  // persist sound prefs on release (not on every pixel of drag)
+  bpmEl.addEventListener("change", function () { S.bpm = +bpmEl.value; F.save(); });
+  durEl.addEventListener("change", function () { S.duration = +durEl.value; F.save(); });
+
+  function updateDurationLabel() {
+    $("s-duration-label").innerHTML = F.t("durationSecs", { n: '<span id="s-duration-val">' + durEl.value + "</span>" });
+  }
+
+  // ---------- status ----------
+  F.api("/api/config").then(function (c) {
+    var parts = [];
+    if (c.custom_brain) parts.push("Brain ✓");
+    parts.push(c.generator ? "MusicGen ✓" : "MusicGen ✗");
+    $("status-text").textContent = parts.join(" · ");
+    $("status-pill").classList.add("ok");
+  }).catch(function () {
+    $("status-text").textContent = F.t("serverOffline");
+  });
+
+  // ---------- auto prompt ----------
+  $("btn-auto-prompt").addEventListener("click", function () {
+    if (state.busy) return;
+    setBusy(true);
+    F.api("/api/audio-prompt", {
+      genre: S.genre,
+      mood: S.mood,
+      bpm: bpmEl.value,
+      duration: durEl.value
+    }).then(function (r) {
+      $("s-prompt").value = r.prompt;
+      F.toast("⚡ " + r.brain);
+    }).catch(function (e) { F.toast(e.message, true); })
+      .finally(function () { setBusy(false); });
+  });
+
+  // ---------- generation ----------
+  $("btn-generate").addEventListener("click", function () {
+    if (state.busy) return;
+    var prompt = $("s-prompt").value.trim();
+    if (!prompt) { F.toast(F.t("emptyPrompt"), true); return; }
+    setBusy(true);
+    $("gen-status").classList.remove("hidden");
+    $("player").classList.add("hidden");
+    $("gen-status-text").textContent = F.t("generating");
+    F.api("/api/generate", { prompt: prompt, duration: durEl.value, seed: $("s-seed").value || undefined })
+      .then(function (r) {
+        state.audioUrl = F.API + r.url;
+        $("audio").src = F.API + r.url;
+        $("track-time").textContent = F.t("genIn", { n: r.seconds });
+        $("player").classList.remove("hidden");
+        $("gen-status").classList.add("hidden");
+        $("audio").play().catch(function () {});
+        F.addTrack({ prompt: prompt, seconds: r.seconds, at: Date.now(), url: F.API + r.url });
+        renderHistory();
+        F.toast(F.t("trackReady"));
+      })
+      .catch(function (e) {
+        $("gen-status").classList.add("hidden");
+        F.toast(e.message, true);
+      })
+      .finally(function () { setBusy(false); });
+  });
+  $("btn-download").addEventListener("click", function () {
+    if (!state.audioUrl) return;
+    var a = document.createElement("a");
+    a.href = state.audioUrl;
+    a.download = "fenix-music-" + Date.now() + ".wav";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  });
+
+  // ---------- history ----------
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function renderHistory() {
+    var list = $("history-list");
+    if (!S.history.length) {
+      list.innerHTML = '<p class="sub" style="margin:6px 0 0">' + esc(F.t("noHistory")) + "</p>";
+      return;
+    }
+    list.innerHTML = "";
+    S.history.forEach(function (rec) {
+      var row = document.createElement("div");
+      row.className = "history-item";
+      row.innerHTML =
+        '<span class="h-prompt">' + esc(rec.prompt) + "</span>" +
+        '<span class="h-meta">' + esc(String(rec.seconds || "?")) + "s</span>" +
+        '<button class="btn-ghost" style="padding:7px 12px;font-size:12.5px">' + esc(F.t("restore")) + "</button>";
+      row.querySelector("button").addEventListener("click", function () {
+        state.audioUrl = rec.url;
+        $("audio").src = rec.url;
+        $("track-time").textContent = "";
+        $("player").classList.remove("hidden");
+        $("s-prompt").value = rec.prompt;
+        $("audio").play().catch(function () {});
+      });
+      list.appendChild(row);
+    });
+  }
+  renderHistory();
+})();
+</script>
+</body>
+</html>

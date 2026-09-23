@@ -1,5 +1,5 @@
 /* Fenix Music — service worker: offline shell (network-first, cache fallback) */
-var CACHE = "fenix-music-v2";
+var CACHE = "fenix-music-v4";
 var SHELL = [
   "./",
   "./index.html",

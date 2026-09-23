@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css">
 <script src="config.js"></script>
 <script src="app.js"></script>
-<meta name="theme-color" content="#0a0710">
+<meta name="theme-color" content="#070b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%A5%3C/text%3E%3C/svg%3E">
@@ -56,8 +56,18 @@
           <option value="rap">Rap</option>
           <option value="arabic rap">Arabic Rap</option>
           <option value="trap">Trap</option>
+          <option value="hip-hop">Hip-Hop</option>
           <option value="pop">Pop</option>
+          <option value="rock">Rock</option>
+          <option value="electronic">Electronic</option>
+          <option value="ambient">Ambient</option>
+          <option value="cinematic">Cinematic</option>
           <option value="lofi">Lo-fi</option>
+          <option value="r&amp;b">R&amp;B</option>
+          <option value="orchestral">Orchestral</option>
+          <option value="anime-inspired">Anime-inspired</option>
+          <option value="game soundtrack">Game soundtrack</option>
+          <option value="custom">Custom…</option>
         </select>
       </div>
       <div>
@@ -65,9 +75,12 @@
         <select id="set-mood">
           <option value="dark aggressive">Dark / Aggressive</option>
           <option value="energetic">Energetic</option>
-          <option value="sad emotional">Sad / Emotional</option>
-          <option value="chill nostalgic">Chill / Nostalgic</option>
-          <option value="epic cinematic">Epic / Cinematic</option>
+          <option value="melancholic">Melancholic</option>
+          <option value="uplifting">Uplifting</option>
+          <option value="romantic">Romantic</option>
+          <option value="epic">Epic</option>
+          <option value="chill">Chill</option>
+          <option value="mysterious">Mysterious</option>
         </select>
       </div>
     </div>
@@ -86,6 +99,19 @@
         <input type="number" id="set-duration" min="5" max="30" value="20">
       </div>
     </div>
+    <label for="set-vocal" style="margin-top:12px" data-i18n="sVocal">Default vocal style</label>
+    <select id="set-vocal">
+      <option value="male vocals">Male vocals</option>
+      <option value="female vocals">Female vocals</option>
+      <option value="choir">Choir</option>
+      <option value="rap flow">Rap flow</option>
+      <option value="instrumental only">Instrumental only</option>
+    </select>
+    <div class="range-head" style="margin-top:12px">
+      <label for="set-energy" data-i18n="sEnergy">Default energy</label><output id="set-energy-val">Medium</output>
+    </div>
+    <input type="range" id="set-energy" min="1" max="5" step="1" value="3" aria-label="Energy">
+    <div class="range-scale"><span data-i18n="e1">Very low</span><span data-i18n="e2">Low</span><span data-i18n="e3">Medium</span><span data-i18n="e4">High</span><span data-i18n="e5">Maximum</span></div>
   </section>
 
   <!-- ==================== behaviour ==================== -->
@@ -154,15 +180,20 @@
   });
 
   // ---------- selects + numbers ----------
+  var E_KEYS = ["e1", "e2", "e3", "e4", "e5"];
   $("set-lyrics-lang").value = S.lyricsLanguage;
   $("set-genre").value = S.genre;
   $("set-mood").value = S.mood;
   $("set-bpm").value = S.bpm;
   $("set-duration").value = S.duration;
+  $("set-vocal").value = S.vocal || "male vocals";
+  $("set-energy").value = S.energy || 3;
+  $("set-energy-val").textContent = F.t(E_KEYS[(S.energy || 3) - 1]);
 
   $("set-lyrics-lang").addEventListener("change", function () { S.lyricsLanguage = this.value; F.save(); });
   $("set-genre").addEventListener("change", function () { S.genre = this.value; F.save(); });
   $("set-mood").addEventListener("change", function () { S.mood = this.value; F.save(); });
+  $("set-vocal").addEventListener("change", function () { S.vocal = this.value; F.save(); });
   $("set-bpm").addEventListener("change", function () {
     S.bpm = Math.max(60, Math.min(200, +this.value || 140));
     this.value = S.bpm;
@@ -171,6 +202,13 @@
   $("set-duration").addEventListener("change", function () {
     S.duration = Math.max(5, Math.min(30, +this.value || 20));
     this.value = S.duration;
+    F.save();
+  });
+  $("set-energy").addEventListener("input", function () {
+    $("set-energy-val").textContent = F.t(E_KEYS[this.value - 1]);
+  });
+  $("set-energy").addEventListener("change", function () {
+    S.energy = +this.value;
     F.save();
   });
 

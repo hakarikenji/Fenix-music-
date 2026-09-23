@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css">
 <script src="config.js"></script>
 <script src="app.js"></script>
-<meta name="theme-color" content="#0a0710">
+<meta name="theme-color" content="#070b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%A5%3C/text%3E%3C/svg%3E">
@@ -37,8 +37,9 @@
     <div id="panel-lyrics">
       <h2 data-i18n="lyricsTitle">✍️ Original Song Lyrics</h2>
       <p class="sub" data-i18n="lyricsSub">Phonk, rap, any genre — full structure (Intro/Verse/Chorus/Bridge/Outro)</p>
-      <div class="row">
-        <div>
+
+      <div class="grid-2">
+        <div class="fld">
           <label for="f-genre" data-i18n="genre">Genre</label>
           <select id="f-genre">
             <option value="phonk">Phonk</option>
@@ -46,21 +47,38 @@
             <option value="rap">Rap</option>
             <option value="arabic rap">Arabic Rap</option>
             <option value="trap">Trap</option>
+            <option value="hip-hop">Hip-Hop</option>
             <option value="pop">Pop</option>
+            <option value="rock">Rock</option>
+            <option value="electronic">Electronic</option>
+            <option value="ambient">Ambient</option>
+            <option value="cinematic">Cinematic</option>
             <option value="lofi">Lo-fi</option>
+            <option value="r&amp;b">R&amp;B</option>
+            <option value="orchestral">Orchestral</option>
+            <option value="anime-inspired">Anime-inspired</option>
+            <option value="game soundtrack">Game soundtrack</option>
+            <option value="custom">Custom…</option>
           </select>
         </div>
-        <div>
+        <div class="fld" id="f-genre-custom-wrap" style="display:none">
+          <label for="f-genre-custom" data-i18n="genreCustom">Custom genre</label>
+          <input id="f-genre-custom" type="text" placeholder="e.g. moroccan desert trap" maxlength="40">
+        </div>
+        <div class="fld">
           <label for="f-mood" data-i18n="mood">Mood</label>
           <select id="f-mood">
             <option value="dark aggressive">Dark / Aggressive</option>
             <option value="energetic">Energetic</option>
-            <option value="sad emotional">Sad / Emotional</option>
-            <option value="chill nostalgic">Chill / Nostalgic</option>
-            <option value="epic cinematic">Epic / Cinematic</option>
+            <option value="melancholic">Melancholic</option>
+            <option value="uplifting">Uplifting</option>
+            <option value="romantic">Romantic</option>
+            <option value="epic">Epic</option>
+            <option value="chill">Chill</option>
+            <option value="mysterious">Mysterious</option>
           </select>
         </div>
-        <div>
+        <div class="fld">
           <label for="f-lang" data-i18n="lyricsLang">Lyrics language</label>
           <select id="f-lang">
             <option value="English">English</option>
@@ -72,14 +90,44 @@
             <option value="Multilingual mix (EN base + hooks)">🌍 Multilingual mix (EN base + hooks)</option>
           </select>
         </div>
+        <div class="fld">
+          <label for="f-vocal">Vocal style</label>
+          <select id="f-vocal">
+            <option value="male vocals">Male vocals</option>
+            <option value="female vocals">Female vocals</option>
+            <option value="choir">Choir</option>
+            <option value="rap flow">Rap flow</option>
+            <option value="instrumental only">Instrumental only</option>
+          </select>
+        </div>
       </div>
+
+      <div class="fld" style="margin-top:12px">
+        <label data-i18n="structureLbl">Song structure (in order)</label>
+        <div class="seg" id="f-structure">
+          <button type="button" data-v="Intro" class="on">Intro</button>
+          <button type="button" data-v="Verse" class="on">Verse</button>
+          <button type="button" data-v="Pre-Chorus">Pre-Chorus</button>
+          <button type="button" data-v="Chorus" class="on">Chorus</button>
+          <button type="button" data-v="Bridge">Bridge</button>
+          <button type="button" data-v="Drop">Drop</button>
+          <button type="button" data-v="Outro" class="on">Outro</button>
+        </div>
+      </div>
+
       <label for="f-topic" data-i18n="topic">Idea / Topic</label>
       <textarea id="f-topic" data-i18n-ph="topicPh" placeholder="e.g. the night, speed, a city under rain…"></textarea>
+
+      <div class="fld" style="margin-top:12px">
+        <label for="f-lyrics-custom" data-i18n="customLyrics">Custom lyrics (optional — overrides AI lyrics)</label>
+        <textarea id="f-lyrics-custom" data-i18n-ph="customLyricsPh" placeholder="[Verse]&#10;write your own lines here…" style="min-height:110px"></textarea>
+      </div>
+
       <div style="margin-top:14px">
         <button class="btn-fire" id="btn-lyrics" data-i18n="writeLyrics">Write lyrics 🔥</button>
         <button class="btn-ghost hidden" id="btn-copy-lyrics" data-i18n="copy">Copy</button>
       </div>
-      <div class="lyrics hidden" id="lyrics-out"></div>
+      <div class="fmt hidden" id="lyrics-out"></div>
     </div>
 
     <!-- ---- radio DJ panel ---- -->
@@ -94,7 +142,7 @@
     </div>
   </section>
 
-  <footer>Fenix Music · Hakari Studio — <a href="https://github.com/hakarikenji">Fenix AI · Fenix Music</a> · Next: Video 🎬 · App Builder 🛠️</footer>
+  <footer>Fenix Music · Hakari Studio — <a href="https://github.com/hakarikenji">Fenix AI · Fenix Music</a></footer>
 </div>
 
 <!-- ==================== bottom nav ==================== -->
@@ -121,19 +169,33 @@
   }
 
   // ---------- init from saved settings ----------
-  $("f-genre").value = S.genre;
+  if ([].slice.call($("f-genre").options).some(function (o) { return o.value === S.genre; })) {
+    $("f-genre").value = S.genre;
+  }
+  if ($("f-genre").value === "custom") $("f-genre-custom-wrap").style.display = "";
   $("f-mood").value = S.mood;
   if ([].slice.call($("f-lang").options).some(function (o) { return o.value === S.lyricsLanguage; })) {
     $("f-lang").value = S.lyricsLanguage;
   }
-  // keep last-used values for next visit
-  ["f-genre", "f-mood", "f-lang"].forEach(function (id) {
-    $(id).addEventListener("change", function () {
-      S.genre = $("f-genre").value;
-      S.mood = $("f-mood").value;
-      S.lyricsLanguage = $("f-lang").value;
-      F.save();
-    });
+  if (S.vocal) $("f-vocal").value = S.vocal;
+
+  $("f-genre").addEventListener("change", function () {
+    $("f-genre-custom-wrap").style.display = this.value === "custom" ? "" : "none";
+  });
+  [].slice.call($("f-structure").querySelectorAll("button")).forEach(function (b) {
+    b.addEventListener("click", function () { b.classList.toggle("on"); });
+  });
+
+  // persist last-used creation values for next visit
+  function persistPrefs() {
+    S.genre = $("f-genre").value === "custom" ? ($("f-genre-custom").value.trim() || "custom") : $("f-genre").value;
+    S.mood = $("f-mood").value;
+    S.lyricsLanguage = $("f-lang").value;
+    S.vocal = $("f-vocal").value;
+    F.save();
+  }
+  ["f-genre", "f-mood", "f-lang", "f-vocal"].forEach(function (id) {
+    $(id).addEventListener("change", persistPrefs);
   });
 
   F.applyTranslations();
@@ -165,18 +227,39 @@
     });
   });
 
-  // ---------- lyrics ----------
+  // ---------- lyrics (Fenix-ai: structure + vocal → extra, /api/music/lyrics) ----------
+  function structureValue() {
+    return [].slice.call($("f-structure").querySelectorAll("button.on"))
+      .map(function (b) { return b.dataset.v; }).join(", ");
+  }
+
   $("btn-lyrics").addEventListener("click", function () {
     if (state.busy) return;
     setBusy(true);
     $("lyrics-out").classList.add("hidden");
-    F.api("/api/lyrics", {
-      genre: $("f-genre").value,
+
+    // Custom lyrics win — honest, no extra brain call.
+    if ($("f-lyrics-custom").value.trim()) {
+      var out0 = $("lyrics-out");
+      out0.textContent = $("f-lyrics-custom").value.trim();
+      out0.classList.remove("hidden");
+      $("btn-copy-lyrics").classList.remove("hidden");
+      F.toast(F.t("usingCustom"));
+      setBusy(false);
+      return;
+    }
+
+    var vocal = $("f-vocal").value;
+    var payload = {
+      genre: $("f-genre").value === "custom" ? ($("f-genre-custom").value.trim() || "custom") : $("f-genre").value,
       mood: $("f-mood").value,
       language: $("f-lang").value,
-      topic: $("f-topic").value.trim()
-    }).then(function (r) {
-      var lyrics = (r && r.lyrics) ? r.lyrics : "";
+      topic: $("f-topic").value.trim(),
+      structure: structureValue(),
+      extra: vocal === "instrumental only" ? "instrumental — no lyrics, structure labels only" : vocal
+    };
+    F.api("/api/music/lyrics", payload).then(function (r) {
+      var lyrics = (r && r.lyrics) ? String(r.lyrics) : "";
       if (!lyrics) { F.toast((r && r.error) || F.t("brainsBusy"), true); return; }
       var out = $("lyrics-out");
       out.textContent = lyrics;
@@ -214,7 +297,7 @@
       var names = { en: "English", ar: "Arabic", fr: "French", es: "Spanish", ja: "Japanese", ru: "Russian" };
       msg += "\n\n(Always reply in " + (names[S.uiLanguage] || "English") + " language.)";
     }
-    F.api("/api/chat", { message: msg, history: state.history })
+    F.api("/api/music/chat", { message: msg, history: state.history })
       .then(function (r) {
         var reply = (r && r.reply) ? r.reply : "";
         if (!reply) { F.toast((r && r.error) || F.t("chatNoReply"), true); return; }

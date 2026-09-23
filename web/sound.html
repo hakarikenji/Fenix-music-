@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style.css">
 <script src="config.js"></script>
 <script src="app.js"></script>
-<meta name="theme-color" content="#0a0710">
+<meta name="theme-color" content="#070b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%A5%3C/text%3E%3C/svg%3E">
@@ -29,25 +29,80 @@
   <!-- ==================== generator ==================== -->
   <section class="card">
     <h2 data-i18n="soundTitle">🎧 Real Sound Generation (MusicGen on GPU)</h2>
-    <p class="sub" data-i18n="soundSub">Write the beat description or auto-generate it, then hit generate — you get a ready WAV</p>
 
-    <div class="row">
+    <!-- ---- creation setup (sliders) ---- -->
+    <h3 class="group-title" data-i18n="creationSetup">🎛️ Creation setup</h3>
+    <div class="grid-2">
       <div>
-        <label for="s-bpm" data-i18n="bpm">BPM: <span id="s-bpm-val">140</span></label>
-        <input type="range" id="s-bpm" min="60" max="200" value="140" style="padding:0;accent-color:var(--fire1)">
+        <label for="s-genre" data-i18n="genre">Genre</label>
+        <select id="s-genre">
+          <option value="phonk">Phonk</option>
+          <option value="drift phonk">Drift Phonk</option>
+          <option value="trap">Trap</option>
+          <option value="hip-hop">Hip-Hop</option>
+          <option value="pop">Pop</option>
+          <option value="rock">Rock</option>
+          <option value="electronic">Electronic</option>
+          <option value="ambient">Ambient</option>
+          <option value="cinematic">Cinematic</option>
+          <option value="lofi">Lo-fi</option>
+          <option value="r&amp;b">R&amp;B</option>
+          <option value="orchestral">Orchestral</option>
+          <option value="anime-inspired">Anime-inspired</option>
+          <option value="game soundtrack">Game soundtrack</option>
+          <option value="custom">Custom…</option>
+        </select>
+      </div>
+      <div id="s-genre-custom-wrap" style="display:none">
+        <label for="s-genre-custom" data-i18n="genreCustom">Custom genre</label>
+        <input id="s-genre-custom" type="text" placeholder="e.g. moroccan desert trap" maxlength="40">
       </div>
       <div>
-        <label for="s-duration" id="s-duration-label">Duration: <span id="s-duration-val">20</span> seconds</label>
-        <input type="range" id="s-duration" min="5" max="30" value="20" style="padding:0;accent-color:var(--fire1)">
-        <input type="hidden" id="s-seed">
+        <label for="s-mood" data-i18n="mood">Mood</label>
+        <select id="s-mood">
+          <option value="dark aggressive">Dark / Aggressive</option>
+          <option value="energetic">Energetic</option>
+          <option value="melancholic">Melancholic</option>
+          <option value="uplifting">Uplifting</option>
+          <option value="romantic">Romantic</option>
+          <option value="epic">Epic</option>
+          <option value="chill">Chill</option>
+          <option value="mysterious">Mysterious</option>
+        </select>
+      </div>
+      <div>
+        <label for="s-vocal">Vocal style</label>
+        <select id="s-vocal">
+          <option value="male vocals">Male vocals</option>
+          <option value="female vocals">Female vocals</option>
+          <option value="choir">Choir</option>
+          <option value="rap flow">Rap flow</option>
+          <option value="instrumental only">Instrumental only</option>
+        </select>
+      </div>
+      <div>
+        <div class="range-head"><label for="s-bpm" data-i18n="tempo">Tempo (BPM)</label><output id="s-bpm-val">140</output></div>
+        <input type="range" id="s-bpm" min="60" max="200" step="1" value="140" aria-label="BPM">
+      </div>
+      <div>
+        <div class="range-head"><label for="s-energy" data-i18n="energy">Energy</label><output id="s-energy-val">Medium</output></div>
+        <input type="range" id="s-energy" min="1" max="5" step="1" value="3" aria-label="Energy">
+        <div class="range-scale"><span data-i18n="e1">Very low</span><span data-i18n="e2">Low</span><span data-i18n="e3">Medium</span><span data-i18n="e4">High</span><span data-i18n="e5">Maximum</span></div>
+      </div>
+      <div>
+        <div class="range-head"><label for="s-duration" id="s-duration-label">Duration: <span id="s-duration-val">20</span> seconds</label></div>
+        <input type="range" id="s-duration" min="5" max="30" step="1" value="20" aria-label="Duration">
       </div>
     </div>
+    <input type="hidden" id="s-seed">
 
-    <label for="s-prompt" data-i18n="beatPrompt">Beat description</label>
-    <textarea id="s-prompt" data-i18n-ph="beatPh" placeholder="e.g. dark aggressive drift phonk, heavy 808 bass…"></textarea>
+    <label for="mu-prompt-out" data-i18n="promptBox">Audio prompt — editable</label>
+    <textarea id="mu-prompt-out" data-i18n-ph="beatPh" placeholder="e.g. dark aggressive drift phonk, heavy 808 bass, cowbell melody…"></textarea>
+    <p class="sub" id="prompt-note" style="margin-top:6px" data-i18n="promptBoxNote">Nothing built yet — tap “Build audio prompt”, or leave empty and generation will build one from your settings</p>
 
     <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap">
-      <button class="btn-ghost" id="btn-auto-prompt" data-i18n="autoPrompt">⚡ Auto prompt</button>
+      <button class="btn-ghost" id="btn-auto-prompt" data-i18n="autoPrompt">⚡ Build audio prompt</button>
+      <button class="btn-ghost hidden" id="btn-variation" data-i18n="variation">🎲 Variation</button>
       <button class="btn-fire" id="btn-generate" data-i18n="generate">🎵 Generate music</button>
     </div>
 
@@ -85,34 +140,80 @@
   var F = window.FenixApp;
   var $ = function (id) { return document.getElementById(id); };
   var S = F.settings;
-  var state = { audioUrl: null, busy: false };
+  var state = { audioUrl: null, busy: false, lastRec: null };
 
   function setBusy(b) {
     state.busy = b;
-    ["btn-auto-prompt", "btn-generate"].forEach(function (id) { $(id).disabled = b; });
+    ["btn-auto-prompt", "btn-generate", "btn-variation"].forEach(function (id) { $(id).disabled = b; });
   }
 
+  // ---------- energy labels ----------
+  var E_KEYS = ["e1", "e2", "e3", "e4", "e5"];
+  function energyWord(n) { return F.t(E_KEYS[Math.max(1, Math.min(5, n | 0)) - 1]); }
+
   // ---------- init from saved settings ----------
+  $("s-genre").value = S.genre;
+  if ($("s-genre").value === "custom") $("s-genre-custom-wrap").style.display = "";
+  $("s-genre").addEventListener("change", function () {
+    $("s-genre-custom-wrap").style.display = this.value === "custom" ? "" : "none";
+  });
+  $("s-mood").value = S.mood;
+  $("s-vocal").value = S.vocal || "male vocals";
   $("s-bpm").value = S.bpm;
+  $("s-energy").value = S.energy || 3;
   $("s-duration").value = S.duration;
   $("s-bpm-val").textContent = S.bpm;
+  $("s-energy-val").textContent = energyWord(S.energy || 3);
   $("s-duration-val").textContent = S.duration;
 
   F.applyTranslations();
-  updateDurationLabel();
 
-  var bpmEl = $("s-bpm"), durEl = $("s-duration");
+  var bpmEl = $("s-bpm"), energyEl = $("s-energy"), durEl = $("s-duration");
+  updateDurationLabel(); // must run after the element refs exist (var hoisting trap)
   bpmEl.addEventListener("input", function () { $("s-bpm-val").textContent = bpmEl.value; });
+  energyEl.addEventListener("input", function () { $("s-energy-val").textContent = energyWord(+energyEl.value); });
   durEl.addEventListener("input", function () {
     $("s-duration-val").textContent = durEl.value;
     updateDurationLabel();
   });
-  // persist sound prefs on release (not on every pixel of drag)
+  // persist creation prefs on release (not on every pixel of drag)
   bpmEl.addEventListener("change", function () { S.bpm = +bpmEl.value; F.save(); });
+  energyEl.addEventListener("change", function () { S.energy = +energyEl.value; F.save(); });
   durEl.addEventListener("change", function () { S.duration = +durEl.value; F.save(); });
 
   function updateDurationLabel() {
     $("s-duration-label").innerHTML = F.t("durationSecs", { n: '<span id="s-duration-val">' + durEl.value + "</span>" });
+  }
+
+  // ---------- creation payload (single source of truth — no hardcoded BPM anywhere) ----------
+  function creationPayload() {
+    var genreSel = $("s-genre").value;
+    return {
+      genre: genreSel === "custom" ? ($("s-genre-custom").value.trim() || "custom") : genreSel,
+      mood: $("s-mood").value,
+      vocal: $("s-vocal").value || "male vocals",
+      topic: S.topic || "",
+      bpm: bpmEl.value,
+      energy: energyEl.value,
+      duration: durEl.value
+    };
+  }
+
+  function persistPrefs() {
+    S.genre = $("s-genre").value === "custom" ? ($("s-genre-custom").value.trim() || "custom") : $("s-genre").value;
+    S.mood = $("s-mood").value;
+    S.vocal = $("s-vocal").value;
+    F.save();
+  }
+  ["s-genre", "s-genre-custom", "s-mood", "s-vocal"].forEach(function (id) {
+    $(id).addEventListener("change", persistPrefs);
+  });
+
+  // ---------- honest live status in the header pill ----------
+  function statusPill(text) {
+    if (!text) return;
+    $("status-text").textContent = text;
+    $("status-pill").classList.add("ok");
   }
 
   // ---------- status ----------
@@ -126,53 +227,105 @@
     $("status-text").textContent = F.t("serverOffline");
   });
 
-  // ---------- auto prompt ----------
+  // ---------- build audio prompt (real, editable box: #mu-prompt-out) ----------
   $("btn-auto-prompt").addEventListener("click", function () {
     if (state.busy) return;
     setBusy(true);
-    F.api("/api/audio-prompt", {
-      genre: S.genre,
-      mood: S.mood,
-      bpm: bpmEl.value,
-      duration: durEl.value
-    }).then(function (r) {
-      var promptText = (r && r.prompt) ? r.prompt : "";
+    F.api("/api/music/audio-prompt", creationPayload())
+      .then(function (r) {
+        var promptText = (r && r.prompt) ? String(r.prompt) : "";
         if (!promptText) { F.toast((r && r.error) || F.t("brainsBusy"), true); return; }
-        $("s-prompt").value = promptText;
-        F.toast("⚡ " + r.brain);
+        $("mu-prompt-out").value = promptText;   // write into the real editable element
+        setPromptNote("");
+        F.toast(F.t("promptReady") + r.brain + ")");
+        statusPill("Brain ✓ " + (r.brain || ""), true);
       }).catch(function (e) { F.toast(e.message, true); })
       .finally(function () { setBusy(false); });
   });
 
+  function setPromptNote(text) {
+    $("prompt-note").textContent = text || F.t("promptBoxNote");
+  }
+
+  // ---------- backup prompt from settings (never generate with an empty prompt) ----------
+  function backupPrompt() {
+    var p = creationPayload();
+    return (p.genre + ", mood " + p.mood + ", " + p.bpm + " BPM, energy " +
+      energyWord(+p.energy) + ", " + (p.vocal === "instrumental only" ? "instrumental only — no vocals" : p.vocal) +
+      ", about " + p.duration + " seconds" + (p.topic ? ", theme: " + p.topic : "")).trim();
+  }
+
   // ---------- generation ----------
-  $("btn-generate").addEventListener("click", function () {
-    if (state.busy) return;
-    var prompt = $("s-prompt").value.trim();
-    if (!prompt) { F.toast(F.t("emptyPrompt"), true); return; }
+  function generate(payload) {
     setBusy(true);
     $("gen-status").classList.remove("hidden");
     $("player").classList.add("hidden");
-    $("gen-status-text").textContent = F.t("generating");
-    F.api("/api/generate", { prompt: prompt, duration: durEl.value, seed: $("s-seed").value || undefined })
+    $("gen-status-text").textContent = payload.variating ? F.t("variating") : F.t("generating");
+    F.api("/api/music/generate", payload.body)
       .then(function (r) {
         var url = (r && r.url) ? r.url : "";
         if (!url) { throw new Error((r && r.error) || "no audio"); }
+        if (r.seed_applied === false && payload.body.seed != null) {
+          F.toast(F.t("seedNote"), true);  // honest: the free generator ignored the seed
+        }
+        if (r.generator === "hf") statusPill("MusicGen (HF) ✓");
         state.audioUrl = F.API + url;
         $("audio").src = F.API + url;
-        $("track-time").textContent = r.seconds ? F.t("genIn", { n: r.seconds }) : "";
+        $("track-time").textContent = (r.seconds ? F.t("genIn", { n: r.seconds }) : "") +
+          (r.seed_applied === false && payload.body.seed != null ? " · " + F.t("seedNote") : "");
         $("player").classList.remove("hidden");
         $("gen-status").classList.add("hidden");
         $("audio").play().catch(function () {});
-        F.addTrack({ prompt: prompt, seconds: r.seconds, at: Date.now(), url: F.API + r.url });
+        var rec = {
+          prompt: payload.body.prompt, seconds: r.seconds, at: Date.now(), url: F.API + r.url,
+          bpm: +payload.body.bpm, energy: +payload.body.energy, vocal: payload.body.vocal,
+          genre: payload.body.genre, mood: payload.body.mood, topic: payload.body.topic,
+          duration: +payload.body.duration
+        };
+        state.lastRec = rec;
+        F.addTrack(rec);
         renderHistory();
-        F.toast(F.t("trackReady"));
+        $("btn-variation").classList.remove("hidden");
+        F.toast(payload.variating ? F.t("variationDone") : F.t("trackReady"));
       })
       .catch(function (e) {
         $("gen-status").classList.add("hidden");
         F.toast(e.message, true);
       })
       .finally(function () { setBusy(false); });
+  }
+
+  $("btn-generate").addEventListener("click", function () {
+    if (state.busy) return;
+    var prompt = $("mu-prompt-out").value.trim();
+    if (!prompt) {
+      prompt = backupPrompt();
+      $("mu-prompt-out").value = prompt; // show what the backup built — honest, editable
+      setPromptNote("🪄 " + F.t("backupPrompt"));
+    }
+    var body = creationPayload();
+    body.prompt = prompt;
+    body.seed = undefined;
+    generate({ body: body });
   });
+
+  // ---------- variation: same settings, new seed ----------
+  var VOCAL_MIG = { "with-vocals": "male vocals", "instrumental-only": "instrumental only" };
+  function variate(base) {
+    var body = {
+      genre: base.genre || S.genre, mood: base.mood || S.mood,
+      vocal: VOCAL_MIG[base.vocal] || base.vocal || S.vocal || "male vocals",
+      topic: base.topic || "", bpm: base.bpm || S.bpm, energy: base.energy || S.energy,
+      duration: base.duration || S.duration,
+      prompt: base.prompt, seed: Math.floor(Math.random() * 2147483647)
+    };
+    generate({ body: body, variating: true });
+  }
+  $("btn-variation").addEventListener("click", function () {
+    if (state.busy || !state.lastRec) return;
+    variate(state.lastRec);
+  });
+
   $("btn-download").addEventListener("click", function () {
     if (!state.audioUrl) return;
     var a = document.createElement("a");
@@ -183,7 +336,7 @@
     a.remove();
   });
 
-  // ---------- history ----------
+  // ---------- history (library) ----------
   function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -202,14 +355,22 @@
       row.innerHTML =
         '<span class="h-prompt">' + esc(rec.prompt) + "</span>" +
         '<span class="h-meta">' + esc(String(rec.seconds || "?")) + "s</span>" +
+        '<button class="icon-mini" data-act="shuffle" title="' + esc(F.t("variation")) + '">' + esc(F.t("shuffle")) + "</button>" +
         '<button class="btn-ghost" style="padding:7px 12px;font-size:12.5px">' + esc(F.t("restore")) + "</button>";
-      row.querySelector("button").addEventListener("click", function () {
+      row.querySelector('[data-act="shuffle"]').addEventListener("click", function () {
+        if (state.busy) return;
+        variate(rec); // same settings + prompt, new seed
+      });
+      row.querySelector(".btn-ghost").addEventListener("click", function () {
         state.audioUrl = rec.url;
         $("audio").src = rec.url;
         $("track-time").textContent = "";
         $("player").classList.remove("hidden");
-        $("s-prompt").value = rec.prompt;
+        $("mu-prompt-out").value = rec.prompt;
+        setPromptNote("");
         $("audio").play().catch(function () {});
+        state.lastRec = rec;
+        $("btn-variation").classList.remove("hidden");
       });
       list.appendChild(row);
     });

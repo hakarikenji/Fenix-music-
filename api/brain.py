@@ -66,12 +66,29 @@ FENIX_MUSIC_PERSONA = (
 )
 
 
-def lyric_system(genre: str, mood: str, language: str, topic: str) -> str:
-    return (
+def lyric_system(genre: str, mood: str, language: str, topic: str, vocal: str = "with-vocals") -> str:
+    instrumental = vocal == "instrumental-only"
+    head = (
         f"{FENIX_MUSIC_PERSONA}\n"
         "Write ORIGINAL song lyrics. Output EXACTLY this structure, nothing else:\n"
         "[Intro]\n...\n\n[Verse 1]\n...\n\n[Chorus]\n...\n\n[Verse 2]\n...\n\n[Bridge]\n...\n\n[Outro]\n...\n"
-        "Rules: vivid concrete images, strong hooks, repeatable chorus; 2-4 lines per section.\n"
+    )
+    if instrumental:
+        # Honest mode: the deployed audio model cannot sing — return structure labels only,
+        # each with a production note the producer can follow when arranging the track.
+        return (
+            f"{FENIX_MUSIC_PERSONA}\n"
+            "INSTRUMENTAL MODE: the user chose instrumental — no sung words, ever.\n"
+            "Output EXACTLY this structure, nothing else:\n"
+            "[Intro]\n...\n\n[Verse 1]\n...\n\n[Chorus]\n...\n\n[Verse 2]\n...\n\n[Bridge]\n...\n\n[Outro]\n...\n"
+            "Under EVERY label write ONLY one short production note (instrument/arrangement for that "
+            "section, e.g. 'cowbell melody over heavy 808 sub-bass'). NO lyrics, NO sung lines, NO vocal text.\n"
+            f"Genre: {genre}. Mood: {mood}.\n"
+            f"Theme: {topic or 'leave the theme to your taste'}."
+        )
+    return (
+        head
+        + "Rules: vivid concrete images, strong hooks, repeatable chorus; 2-4 lines per section.\n"
         "MULTILINGUAL RULE (default and preferred): mix languages the way real street music does — "
         "verses in the base language; chorus hooks, ad-libs and punchlines come from a global "
         "pool: English, French, Spanish, Japanese, Russian (e.g. a Japanese verse with an English "
@@ -84,14 +101,24 @@ def lyric_system(genre: str, mood: str, language: str, topic: str) -> str:
     )
 
 
-def audio_prompt_system(genre: str, mood: str, bpm: int, duration: int) -> str:
+ENERGY_LEVELS = ["very low", "low", "medium", "high", "maximum"]
+
+
+def audio_prompt_system(genre: str, mood: str, bpm: int, duration: int,
+                        energy: int = 3, vocal: str = "with-vocals") -> str:
+    energy_word = ENERGY_LEVELS[max(1, min(5, int(energy))) - 1]
+    vocal_line = ("VOCALS: none — instrumental only, no singing." if vocal == "instrumental-only"
+                  else "VOCALS: mention a vocal character only if the genre implies sung vocals.\n"
+                       "NOTE: the deployed audio model cannot sing — never promise intelligible lyrics; "
+                       "describe the vocal texture/vibe, not words.")
     return (
         f"{FENIX_MUSIC_PERSONA}\n"
         "You write music-generation prompts for an AI audio model (MusicGen-style).\n"
         "Output ONE dense English paragraph only (no lists, no headers, no quotes) "
         "describing: genre, instrumentation, tempo (BPM), rhythm character, mix, energy arc. "
         "Do NOT include artist names.\n"
-        f"Target: {genre}, mood {mood}, {bpm} BPM, about {duration} seconds."
+        f"Target: {genre}, mood {mood}, {bpm} BPM, energy: {energy_word}, about {duration} seconds.\n"
+        f"{vocal_line}"
     )
 
 
